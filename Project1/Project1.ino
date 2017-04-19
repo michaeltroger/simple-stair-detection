@@ -9,12 +9,17 @@
 //2. Calculate temprature
 //3. Dosplay the results
 
+
 //Application
 //Design and implement the prtocol
 /*
  http://www.sparkfun.com/commerce/categories.php?c=80
  http://www.arduino.cc/en/Tutorial/ADXL3xx
  */
+
+ // Use the softwareserial library to create a new "soft" serial port
+// for the display. This prevents display corruption when uploading code.
+#include <SoftwareSerial.h>
 
 // these constants describe the pins. They won't change:
 const int xpin = A3;                  // x-axis of the accelerometer
@@ -59,10 +64,12 @@ float totalDistance=0.0; //distance in meters
 long resistance[] = {12200, 14770, 17970, 22000, 27080, 33550, 41810, 52450, 66240, 84250};
 int temperatures[] = {40, 35, 30, 25, 20, 15, 10, 5, 0, -5};
 
+SoftwareSerial mySerial(9,12); // pin 12 = TX, pin 9 = RX (unused)
 
 
 void setup()
 {
+  mySerial.begin(9600); // set up serial port for 9600 baud
   // initialize the serial communications:
   Serial.begin(9600);
   maxX=maxY=maxZ=0.0; //initializing max values to 0;
@@ -74,6 +81,7 @@ void setup()
   pinMode(ntcFailurePin, OUTPUT);
   pinMode(ntcWarningPin, OUTPUT);  
   previousTime=loopTime=millis();
+  delay(500); // wait for display to boot up
 }
 
 void loop()
@@ -159,6 +167,11 @@ void loop()
     float vOut = ntcReading / 1023.0 * vInThermistor;
     float r1 = (r2Thermistor * vInThermistor - r2Thermistor * vOut) / vOut;
     float temperature = multiMap(r1, resistance, temperatures, 10);
+
+    String test = "cool thing";
+    test += 100;
+   
+    display(test);
     
     if(ntcReading==0){
       digitalWrite(ntcFailurePin,HIGH);
@@ -169,10 +182,9 @@ void loop()
   }
 
 
-
   Serial.println();
   // delay before next reading:
-  //delay();
+  delay(1000);
 }
 
 //int resistance[] = {12200, 14770, 17970, 22000, 27080, 33550, 41810, 52450, 66240, 84250};
@@ -198,7 +210,21 @@ int multiMap(int val, long* _in, int* _out, uint8_t size)
 }
 
 
+void display(String value) {
+  char buffer[value.length() + 1] = "";
+  value.toCharArray(buffer, sizeof buffer );
+    
+  mySerial.write(254); // move cursor to beginning of first line
+  mySerial.write(128);
 
+  mySerial.write("                "); // clear display
+  mySerial.write("                ");
+
+  mySerial.write(254); // move cursor to beginning of first line
+  mySerial.write(128);
+ 
+  mySerial.write(buffer);
+}
 
 
 

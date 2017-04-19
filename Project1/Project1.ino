@@ -42,7 +42,9 @@ const unsigned int minAccelerometerValue=280; //if read ADC values below this th
 
 //variables to hold g values
 float x,y,z;
-float maxX,maxY,maxZ;
+float maxX = 0;
+float maxY = 0;
+float maxZ = 0;
 float maxTotalAcceleration=2.5;
 
 //variables for encoder
@@ -61,6 +63,7 @@ int maxTemp = -200;
 
 //Application specific variables
 String displayOutput;
+boolean displayToogle=true;
 boolean accelerometer=false;
 boolean accelero_state=true; //specifies if the accelerometer sensor functioning properly;
 unsigned long previousTime; //Time to calculate distance
@@ -124,20 +127,53 @@ void loop()
     x=(x-zeroGVoltage)/sensitivity;
     y=(y-zeroGVoltage)/sensitivity;
     z=(z-zeroGVoltage)/sensitivity;
+    
+
     //calculate tilt angles
     float pitch =atan(x/sqrt((y*y)+(z*z)));
     float roll =atan(y/sqrt((x*x)+(z*z)));
     pitch=pitch*180/3.14159; //dividing with pi;
     roll=roll*180/3.14159;
     //calculating the max values
-    if(abs(maxX)<abs(x)) maxX=x;
-    if(abs(maxY)<abs(y)) maxY=y;
-    if(abs(maxZ)<abs(z)) maxZ=z;
+
+    float tempX = x;
+    if (tempX < 0)  tempX *= -1;
+    if (tempX > maxX) maxX = tempX;
+
+    float tempY = y;
+    if (tempY < 0)  tempY *= -1;
+    if (tempY > maxY) maxY = tempY;
+
+    float tempZ = z;
+    if (tempZ < 0)  tempZ *= -1;
+    if (tempZ > maxZ) maxZ = tempZ;
+
+  
     currentTime=millis();
     totalDistance+=((currentTime-previousTime)*9.6*(abs(x)-0.01))/1000;
     previousTime=millis();
-    // print the sensor values:
-    if(loopTime+1000<millis()){
+
+    if (displayToogle) {
+      displayOutput = "Acc:";
+      displayOutput += "X:";
+      displayOutput += x;
+      displayOutput += " Y:";
+      displayOutput += y;
+      displayOutput += " Z:";
+      displayOutput += z;
+    } else {
+      displayOutput = "Max:";
+      displayOutput += "X:";
+      displayOutput += maxX;
+      displayOutput += " Y:";
+      displayOutput += maxY;
+      displayOutput += " Z:";
+      displayOutput += maxZ;
+    }
+
+    displayToogle = !displayToogle;
+    
+      // print the sensor values:
       Serial.print("Pitch: ");
       Serial.print(pitch);
       // print a tab between values:
@@ -161,7 +197,7 @@ void loop()
       }
       Serial.print("  Distance: ");
       Serial.print(totalDistance);
-    }
+    
   }
   else{
     //Thermister
@@ -182,8 +218,6 @@ void loop()
     displayOutput += "  Max:";
     displayOutput += maxTemp;
    
-    display(displayOutput);
-    
     if(ntcReading==0){
       digitalWrite(ntcFailurePin,HIGH);
     }else{
@@ -192,6 +226,7 @@ void loop()
     Serial.println(temperature);
   }
 
+  display(displayOutput); 
 
   Serial.println();
   // delay before next reading:

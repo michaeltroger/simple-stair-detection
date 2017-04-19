@@ -56,7 +56,7 @@ unsigned long previousTime; //Time to calculate distance
 unsigned long loopTime;
 unsigned long currentTime;
 float totalDistance=0.0; //distance in meters
-int resistance[] = {12200, 14770, 17970, 22000, 27080, 33550, 41810, 52450, 66240, 84250};
+long resistance[] = {12200, 14770, 17970, 22000, 27080, 33550, 41810, 52450, 66240, 84250};
 int temperatures[] = {40, 35, 30, 25, 20, 15, 10, 5, 0, -5};
 
 
@@ -179,7 +179,7 @@ void loop()
 //int temperatures[] = {40, 35, 30, 25, 20, 15, 10, 5, 0, -5};
 // note: the _in array should have increasing values
 // source: http://playground.arduino.cc/Main/MultiMap
-int multiMap(int val, int* _in, int* _out, uint8_t size)
+int multiMap(int val, long* _in, int* _out, uint8_t size)
 {
   // take care the value is within range
   // val = constrain(val, _in[0], _in[size-1]);

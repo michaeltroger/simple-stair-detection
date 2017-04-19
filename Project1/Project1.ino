@@ -54,15 +54,19 @@ unsigned char encoder_A_prev=0;
 //Variables for NTC
 const float vInThermistor = 5;
 const int r2Thermistor = 10000;
+long resistance[] = {12200, 14770, 17970, 22000, 27080, 33550, 41810, 52450, 66240, 84250};
+int temperatures[] = {40, 35, 30, 25, 20, 15, 10, 5, 0, -5};
+int minTemp = 200;
+int maxTemp = -200;
+
 //Application specific variables
+String displayOutput;
 boolean accelerometer=false;
 boolean accelero_state=true; //specifies if the accelerometer sensor functioning properly;
 unsigned long previousTime; //Time to calculate distance
 unsigned long loopTime;
 unsigned long currentTime;
 float totalDistance=0.0; //distance in meters
-long resistance[] = {12200, 14770, 17970, 22000, 27080, 33550, 41810, 52450, 66240, 84250};
-int temperatures[] = {40, 35, 30, 25, 20, 15, 10, 5, 0, -5};
 
 SoftwareSerial mySerial(9,12); // pin 12 = TX, pin 9 = RX (unused)
 
@@ -166,12 +170,19 @@ void loop()
 
     float vOut = ntcReading / 1023.0 * vInThermistor;
     float r1 = (r2Thermistor * vInThermistor - r2Thermistor * vOut) / vOut;
-    float temperature = multiMap(r1, resistance, temperatures, 10);
+    int temperature = multiMap(r1, resistance, temperatures, 10);
 
-    String test = "cool thing";
-    test += 100;
+    if (temperature < minTemp) minTemp = temperature;
+    if (temperature > maxTemp) maxTemp = temperature;
+
+    displayOutput = "Temp:";
+    displayOutput += temperature;
+    displayOutput += "  Min:";
+    displayOutput += minTemp;
+    displayOutput += "  Max:";
+    displayOutput += maxTemp;
    
-    display(test);
+    display(displayOutput);
     
     if(ntcReading==0){
       digitalWrite(ntcFailurePin,HIGH);

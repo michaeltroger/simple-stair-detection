@@ -10,7 +10,7 @@
 #include <SoftwareSerial.h>
 
 // Attach the serial display's RX line to digital pin 2
-SoftwareSerial mySerial(3,12); // pin 2 = TX, pin 3 = RX (unused)
+SoftwareSerial mySerial(9,12); // pin 2 = TX, pin 3 = RX (unused)
 
 void setup()
 {

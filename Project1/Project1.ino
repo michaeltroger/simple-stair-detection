@@ -2,10 +2,9 @@
 //TODO
 //Accelerometer
 //1.Calculate distance
-//calculate tilt
+//2. calculate tilt
 //NTC Thermister
 //Application
-//Design and implement the prtocol done untested.
 //fine tune rotary encoder
 //implement push button for resetting values
 /*
@@ -72,6 +71,7 @@ boolean accelero_state = true; //specifies if the accelerometer sensor functioni
 //unsigned long previousTime; //Time to calculate distance
 unsigned long loopTime;
 unsigned long currentTime;
+boolean humanRedableOP = false;
 
 float totalDistance = 0.0; //distance in meters
 int displayScreen;
@@ -216,7 +216,7 @@ void loop()
     tempZ *= -1;
   if (tempZ > maxZ)
     maxZ = tempZ;
-    
+
   if (abs(x) + abs(y) + abs(z) > maxTotalAcceleration)
   {
     digitalWrite(pin_axelero_warning, HIGH);
@@ -225,7 +225,7 @@ void loop()
   {
     digitalWrite(pin_axelero_warning, LOW);
   }
-  
+
   //Thermister
   float ntcReading = analogRead(NTC_pin);
   float vOut = ntcReading / 1023.0 * vInThermistor;
@@ -254,7 +254,7 @@ void loop()
   {
     digitalWrite(pin_ntc_Warning, LOW);
   }
-  //TODO finetune rotary encoder 
+  //TODO finetune rotary encoder
   currentTime = millis();
   encoder_A = digitalRead(pin_A); // Read encoder pins
   encoder_B = digitalRead(pin_B);
@@ -271,7 +271,11 @@ void loop()
     else
     {
       // B is low so counter-clockwise
-      displayScreen = abs(displayScreen - 1) % 4;
+      if(displayScreen == 0){
+        displayScreen=3;
+      }else{
+        displayScreen = (displayScreen - 1) % 4;
+      }
     }
   }
   encoder_A_prev = encoder_A; // Store value of A for next time
@@ -366,7 +370,7 @@ void readCommand()
   if (Serial.available() > 0)
   {
     String command = Serial.readStringUntil(STOP);
-    Serial.print("'" + command + "'");
+   // Serial.print("'" + command + "'");
     String commandTrimmed = command.substring(command.indexOf(START) + 1, command.indexOf(CHECKSUM));
     int req = commandTrimmed.toInt();
     String response = String(START);
@@ -375,120 +379,51 @@ void readCommand()
       switch (req)
       {
         case REQ_TEMP:
-          Serial.println("Requesting temprature");
-          response += RESP_TEMP;
-          response += SEPERATOR;
-          response += temperature;
-          response += CHECKSUM;
-          response += STOP;
-          Serial.println(response);
+          sendResponse( RESP_TEMP, temperature, "RESP_TEMP");
           break;
         case REQ_MAX_TEMP:
-          Serial.println("Requesting max temprature");
-          response += RESP_MAX_TEMP;
-          response += SEPERATOR;
-          response += maxTemp;
-          response += CHECKSUM;
-          response += STOP;
-          Serial.println(response);
+          sendResponse( RESP_MAX_TEMP, maxTemp, "RESP_MAX_TEMP");
           break;
         case REQ_MIN_TEMP:
-          Serial.println("Requesting minmum temprature");
-          response += RESP_MIN_TEMP;
-          response += SEPERATOR;
-          response += minTemp;
-          response += CHECKSUM;
-          response += STOP;
-          Serial.println(response);
+          sendResponse( RESP_MIN_TEMP, minTemp, "RESP_MIN_TEMP");
           break;
         case REQ_CURR_X:
-          response += RESP_CURR_X;
-          response += SEPERATOR;
-          response += x;
-          response += CHECKSUM;
-          response += STOP;
-          Serial.println(response);
+          sendResponse( RESP_CURR_X, x, "RESP_CURR_X");
           break;
         case REQ_CURR_Y:
-          response += RESP_CURR_Y;
-          response += SEPERATOR;
-          response += y;
-          response += CHECKSUM;
-          response += STOP;
-          Serial.println(response);
+          sendResponse( RESP_CURR_Y, y, "RESP_CURR_Y");
           break;
         case REQ_CURR_Z:
-          response += RESP_CURR_Z;
-          response += SEPERATOR;
-          response += z;
-          response += CHECKSUM;
-          response += STOP;
-          Serial.println(response);
+          sendResponse( RESP_CURR_Z, z, "RESP_CURR_Z");
           break;
         case REQ_MAX_X:
-          response += RESP_MAX_X;
-          response += SEPERATOR;
-          response += maxX;
-          response += CHECKSUM;
-          response += STOP;
-          Serial.println(response);
+          sendResponse( RESP_MAX_X, maxX, "RESP_MAX_X");
           break;
         case REQ_MAX_Y:
-          response += RESP_MAX_Y;
-          response += SEPERATOR;
-          response += maxY;
-          response += CHECKSUM;
-          response += STOP;
-          Serial.println(response);
+          sendResponse( RESP_MAX_Y, maxY, "RESP_MAX_Y");
           break;
         case REQ_MAX_Z:
-          response += RESP_MAX_Z;
-          response += SEPERATOR;
-          response += maxZ;
-          response += CHECKSUM;
-          response += STOP;
-          Serial.println(response);
+          sendResponse( RESP_MAX_Z, maxZ, "RESP_MAX_Z");
           break;
         case REQ_TILT:
-          response += RESP_TILT;
-          response += SEPERATOR;
-          response += tilt;
-          response += CHECKSUM;
-          response += STOP;
-          Serial.println(response);
+          sendResponse(RESP_TILT, tilt, "RESP_TILT");
           break;
         case REQ_PITCH:
-          response += RESP_PITCH;
-          response += SEPERATOR;
-          response += pitch;
-          response += CHECKSUM;
-          response += STOP;
-          Serial.println(response);
+          sendResponse(RESP_PITCH, pitch, "RESP_PITCH");
           break;
         case REQ_ROLL:
-          response += RESP_ROLL;
-          response += SEPERATOR;
-          response += roll;
-          response += CHECKSUM;
-          response += STOP;
-          Serial.println(response);
+          sendResponse(RESP_ROLL, roll, "RESP_ROLL");
           break;
         case RESET_MIN_MAX:
           minTemp = 100;
           maxTemp = -100;
           maxX = maxY = maxZ = maxTotalAcceleration = 0;
           //sednig ack
-          response += ACK;
-          response += CHECKSUM;
-          response += STOP;
-          Serial.println(response);
+          sendResponse(ACK, "");
           break;
         default:
           //sending negative ack
-          response += NACK;
-          response += CHECKSUM;
-          response += STOP;
-          Serial.println(response);
+          sendResponse(NACK, "");
       }
     }
     else
@@ -510,41 +445,17 @@ void readCommand()
         switch (param)
         {
           case MAX_TEMP_TRESHOLD:
-            response += RESP_PARA;
-            response += SEPERATOR;
-            response += MAX_TEMP_TRESHOLD;
-            response += SEPERATOR;
-            response += maxAllowedTemp;
-            response += CHECKSUM;
-            response += STOP;
-            Serial.println(response);
+            sendResponse(RESP_PARA, MAX_TEMP_TRESHOLD, maxAllowedTemp, "MAX_TEMP_TRESHOLD");
             break;
           case DELTA_TEMP_TRESHOLD:
-            response += RESP_PARA;
-            response += SEPERATOR;
-            response += DELTA_TEMP_TRESHOLD;
-            response += SEPERATOR;
-            response += tempDelta;
-            response += CHECKSUM;
-            response += STOP;
-            Serial.println(response);
+            sendResponse(RESP_PARA, DELTA_TEMP_TRESHOLD, tempDelta, "DELTA_TEMP_TRESHOLD");
             break;
           case MAX_ACC_TRESHOLD:
-            response += RESP_PARA;
-            response += SEPERATOR;
-            response += MAX_ACC_TRESHOLD;
-            response += SEPERATOR;
-            response += maxTotalAcceleration;
-            response += CHECKSUM;
-            response += STOP;
-            Serial.println(response);
+            sendResponse( RESP_PARA, MAX_ACC_TRESHOLD, maxTotalAcceleration, "MAX_ACC_TRESHOLD");
             break;
           default:
             //sending negative ack
-            response += NACK;
-            response += CHECKSUM;
-            response += STOP;
-            Serial.println(response);
+            sendResponse(NACK, "");
         }
       }
       if (reqType == SET_PARA) {
@@ -552,49 +463,73 @@ void readCommand()
           case MAX_TEMP_TRESHOLD:
             maxAllowedTemp = data;
             //sending ack
-            response += ACK;
-            response += CHECKSUM;
-            response += STOP;
-            Serial.println(response);
+            sendResponse(ACK, "MAX_TEMP_TRESHOLD");
             break;
           case DELTA_TEMP_TRESHOLD:
             tempDelta = data;
             //sending ack
-            response += ACK;
-            response += CHECKSUM;
-            response += STOP;
-            Serial.println(response);
-            break;
+            sendResponse(ACK, "DELTA_TEMP_TRESHOLD" );
           case MAX_ACC_TRESHOLD:
             maxTotalAcceleration = data;
             //sending ack
-            response += ACK;
-            response += CHECKSUM;
-            response += STOP;
-            Serial.println(response);
+            sendResponse(ACK, "MAX_ACC_TRESHOLD");
             break;
           case CALIBRATION_TEMPERATURE:
-            tempCalibrateValue = data;
+            tempCalibrateValue = temperature - data;
             //sending ack
-            sendResponse(ACK,-100 );
+            sendResponse(ACK, "CALIBRATION_TEMPERATURE" );
             break;
           default:
             //sending negative ack
-            sendResponse(NACK, -100);
+            sendResponse(NACK, "");
         }
       }
     }
   }
 }
 
-void sendResponse(int param, float data) {
-      String resonse = String(START);
-      response += param;
-      if(data!=-100){
-        response+=SEPERATOR;
-        response+=data;
-      }
-      response += CHECKSUM;
-      response += STOP;
-      Serial.println(response);
+void sendResponse(int param, String name) {
+  if (humanRedableOP) {
+    String op = name;
+    op += " " + String(param);
+    Serial.println(op);
+  } else {
+    String response = String(START);
+    response += param;
+    response += CHECKSUM;
+    response += STOP;
+    Serial.println(response);
+  }
+}
+void sendResponse(int param, float data, String name) {
+  if (humanRedableOP) {
+    String op = name;
+    op += " " + String(data);
+    Serial.println(op);
+  } else {
+    String response = String(START);
+    response += param;
+    response += SEPERATOR;
+    response += data;
+    response += CHECKSUM;
+    response += STOP;
+    Serial.println(response);
+  }
+}
+void sendResponse(int response_param, int param, float data, String name) {
+  if (humanRedableOP) {
+    String op = name;
+    op += " " + String(data);
+    Serial.println(op);
+  } else {
+    String response = String(START);
+    response += response_param;
+    response += SEPERATOR;
+    response += param;
+    response += SEPERATOR;
+    response += data;
+    response += CHECKSUM;
+    response += STOP;
+    Serial.println(response);
+  }
 }

@@ -25,6 +25,8 @@ const int pin_axelero_warning = 2; //warning LED light for accelerometer
 const int pin_axelero_failure = 3; //Failure LED for accelero meter
 const int pin_A = 7;               // Pin A from rotary encoder
 const int pin_B = 6;               // Pin B from rotary encoder
+const int pin_reset_button = 8;
+const int pin_led_reset = 13;
 const int pin_ntc_Failure = 10;
 const int pin_ntc_Warning = 11;
 
@@ -64,6 +66,7 @@ int temperature;
 int tempCalibrateValue = 0;
 
 //Application specific variables
+int resetButtonState = 0;
 String displayOutput;
 boolean displayToogle = true;
 boolean accelerometer = false;
@@ -159,6 +162,10 @@ void setup()
   pinMode(pin_axelero_failure, OUTPUT);
   pinMode(pin_ntc_Warning, OUTPUT);
   pinMode(pin_ntc_Failure, OUTPUT);
+
+  pinMode(pin_reset_button, INPUT);
+  pinMode(pin_led_reset, OUTPUT);
+
   delay(500); // wait for display to boot up
   
   currentTimeRotaryEncoder = millis();
@@ -171,6 +178,17 @@ void setup()
 
 void loop()
 {
+  resetButtonState = digitalRead(pin_reset_button);
+  if (resetButtonState == HIGH) {
+    digitalWrite(pin_led_reset, HIGH);
+    maxX = 0;
+    maxY = 0;
+    maxZ = 0;
+    minTemp = 200;
+    maxTemp = -200;
+  } else {
+    digitalWrite(pin_led_reset, LOW);
+  }
 
   //reading the values
   x = analogRead(xpin);

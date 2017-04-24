@@ -69,8 +69,9 @@ boolean displayToogle = true;
 boolean accelerometer = false;
 boolean accelero_state = true; //specifies if the accelerometer sensor functioning properly;
 //unsigned long previousTime; //Time to calculate distance
-unsigned long loopTime;
-unsigned long currentTime;
+unsigned long loopTimeRotaryEncoder;
+unsigned long currentTimeRotaryEncoder;
+
 unsigned long loopTimeDisplayOutput;
 unsigned long currentTimeDisplayOutput;
 boolean humanRedableOP = false;
@@ -159,7 +160,11 @@ void setup()
   pinMode(pin_ntc_Warning, OUTPUT);
   pinMode(pin_ntc_Failure, OUTPUT);
   delay(500); // wait for display to boot up
-  //loopTime = 5000;
+  
+  currentTimeRotaryEncoder = millis();
+  loopTimeRotaryEncoder = currentTimeRotaryEncoder;
+
+
   currentTimeDisplayOutput = millis();
   loopTimeDisplayOutput = currentTimeDisplayOutput;
 }
@@ -260,30 +265,34 @@ void loop()
     digitalWrite(pin_ntc_Warning, LOW);
   }
   //TODO finetune rotary encoder
-  currentTime = millis();
-  encoder_A = digitalRead(pin_A); // Read encoder pins
-  encoder_B = digitalRead(pin_B);
-  // Serial.print(" Read encoder pin ");
-  if ((!encoder_A) && (encoder_A_prev))
+  currentTimeRotaryEncoder = millis();
+  if (currentTimeRotaryEncoder >= loopTimeRotaryEncoder + 5) 
   {
-    // Serial.print(" Encoder pin changed ");
-    // A has gone from high to low
-    if (encoder_B)
-    {
-      // B is high so clockwise
-      displayScreen = (displayScreen + 1) % 4;
-    }
-    else
-    {
-      // B is low so counter-clockwise
-      if(displayScreen == 0){
-        displayScreen=3;
-      }else{
-        displayScreen = (displayScreen - 1) % 4;
+      encoder_A = digitalRead(pin_A); // Read encoder pins
+      encoder_B = digitalRead(pin_B);
+      // Serial.print(" Read encoder pin ");
+      if ((!encoder_A) && (encoder_A_prev))
+      {
+        // Serial.print(" Encoder pin changed ");
+        // A has gone from high to low
+        if (encoder_B)
+        {
+          // B is high so clockwise
+          displayScreen = (displayScreen + 1) % 4;
+        }
+        else
+        {
+          // B is low so counter-clockwise
+          if(displayScreen == 0){
+            displayScreen=3;
+          }else{
+            displayScreen = (displayScreen - 1) % 4;
+          }
+        }
       }
-    }
+      encoder_A_prev = encoder_A; // Store value of A for next time
+    loopTimeRotaryEncoder = currentTimeRotaryEncoder;
   }
-  encoder_A_prev = encoder_A; // Store value of A for next time
   // Serial.print("displayScreen: ");
   // Serial.println(displayScreen);
   switch (displayScreen)

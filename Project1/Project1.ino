@@ -71,6 +71,8 @@ boolean accelero_state = true; //specifies if the accelerometer sensor functioni
 //unsigned long previousTime; //Time to calculate distance
 unsigned long loopTime;
 unsigned long currentTime;
+unsigned long loopTimeDisplayOutput;
+unsigned long currentTimeDisplayOutput;
 boolean humanRedableOP = false;
 
 float totalDistance = 0.0; //distance in meters
@@ -157,6 +159,8 @@ void setup()
   pinMode(pin_ntc_Failure, OUTPUT);
   delay(500); // wait for display to boot up
   //loopTime = 5000;
+  currentTimeDisplayOutput = millis();
+  loopTimeDisplayOutput = currentTimeDisplayOutput;
 }
 
 void loop()
@@ -317,7 +321,11 @@ void loop()
       break;
   }
   //loopTime=millis();
-  display(displayOutput);
+  currentTimeDisplayOutput = millis();
+  if (currentTimeDisplayOutput > loopTimeDisplayOutput + 1000) {
+    display(displayOutput);
+    loopTimeDisplayOutput = currentTimeDisplayOutput;
+  }
   readCommand();
 
   //}

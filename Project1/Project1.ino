@@ -74,6 +74,7 @@ unsigned long currentTime;
 unsigned long loopTimeDisplayOutput;
 unsigned long currentTimeDisplayOutput;
 boolean humanRedableOP = false;
+const int DISPLAY_UPDATE_INTERVAL = 1000;
 
 float totalDistance = 0.0; //distance in meters
 int displayScreen;
@@ -322,7 +323,7 @@ void loop()
   }
   //loopTime=millis();
   currentTimeDisplayOutput = millis();
-  if (currentTimeDisplayOutput > loopTimeDisplayOutput + 1000) {
+  if (currentTimeDisplayOutput > loopTimeDisplayOutput + DISPLAY_UPDATE_INTERVAL) {
     display(displayOutput);
     loopTimeDisplayOutput = currentTimeDisplayOutput;
   }

@@ -576,19 +576,25 @@ void readCommand()
           case CALIBRATION_TEMPERATURE:
             tempCalibrateValue = data;
             //sending ack
-            response += ACK;
-            response += CHECKSUM;
-            response += STOP;
-            Serial.println(response);
+            sendResponse(ACK,-100 );
             break;
           default:
             //sending negative ack
-            response += NACK;
-            response += CHECKSUM;
-            response += STOP;
-            Serial.println(response);
+            sendResponse(NACK, -100);
         }
       }
     }
   }
+}
+
+void sendResponse(int param, float data) {
+      String resonse = String(START);
+      response += param;
+      if(data!=-100){
+        response+=SEPERATOR;
+        response+=data;
+      }
+      response += CHECKSUM;
+      response += STOP;
+      Serial.println(response);
 }

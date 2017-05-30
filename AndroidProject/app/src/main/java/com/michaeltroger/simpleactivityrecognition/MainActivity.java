@@ -41,8 +41,6 @@ public class MainActivity extends AppCompatActivity {
         mUpdateUIReciver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Log.d("tag", intent.getStringExtra(INTENT_MSG));
-
                 switch (intent.getStringExtra(INTENT_MSG)) {
                     case WALKING_MSG:
                         list.add(getString(R.string.walking_detected));
@@ -56,8 +54,6 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         registerReceiver(mUpdateUIReciver,filter);
-
-
     }
 
 

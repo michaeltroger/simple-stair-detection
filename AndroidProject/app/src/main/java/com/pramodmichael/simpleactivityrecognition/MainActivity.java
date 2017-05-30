@@ -10,6 +10,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.WindowManager;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import static com.pramodmichael.simpleactivityrecognition.SensorService.INTENT_ACTION;
@@ -40,12 +41,17 @@ public class MainActivity extends AppCompatActivity {
         mUpdateUIReciver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
+                long date = System.currentTimeMillis();
+
+                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+                String dateString = sdf.format(date);
+
                 switch (intent.getStringExtra(INTENT_MSG)) {
                     case WALKING_MSG:
-                        list.add(getString(R.string.walking_detected));
+                        list.add(dateString + ": " + getString(R.string.walking_detected));
                         break;
                     case STAIRS_MSG:
-                        list.add(getString(R.string.stairs_detected));
+                        list.add(dateString + ": " + getString(R.string.stairs_detected));
                         break;
                 }
 

@@ -1,4 +1,4 @@
-package com.michaeltroger.simpleactivityrecognition;
+package com.pramodmichael.simpleactivityrecognition;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -8,15 +8,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.WindowManager;
 
 import java.util.ArrayList;
 
-import static com.michaeltroger.simpleactivityrecognition.SensorService.INTENT_ACTION;
-import static com.michaeltroger.simpleactivityrecognition.SensorService.INTENT_MSG;
-import static com.michaeltroger.simpleactivityrecognition.SensorService.STAIRS_MSG;
-import static com.michaeltroger.simpleactivityrecognition.SensorService.WALKING_MSG;
+import static com.pramodmichael.simpleactivityrecognition.SensorService.INTENT_ACTION;
+import static com.pramodmichael.simpleactivityrecognition.SensorService.INTENT_MSG;
+import static com.pramodmichael.simpleactivityrecognition.SensorService.STAIRS_MSG;
+import static com.pramodmichael.simpleactivityrecognition.SensorService.WALKING_MSG;
 
 public class MainActivity extends AppCompatActivity {
     private BroadcastReceiver mUpdateUIReciver;

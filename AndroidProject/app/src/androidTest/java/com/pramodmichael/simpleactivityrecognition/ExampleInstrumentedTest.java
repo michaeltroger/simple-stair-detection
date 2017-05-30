@@ -1,4 +1,4 @@
-package com.michaeltroger.simpleactivityrecognition;
+package com.pramodmichael.simpleactivityrecognition;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

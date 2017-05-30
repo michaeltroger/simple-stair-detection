@@ -8,22 +8,29 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.MediaPlayer;
 import android.os.IBinder;
-import android.util.Log;
 
 public class SensorService extends Service implements SensorEventListener{
+    private static final String TAG = SensorService.class.getSimpleName();
+
     private SensorManager mSensorManager;
+
     private MediaPlayer mMediaplayerMoving;
     private float mEwmaAccelleration = 0;
     private static final float ALPHA_ACCELERATION = 0.5f;
     private static final float THRESHOLD_EWMA_ACCELERATION = 0.1f;
-
-    private static final String TAG = SensorService.class.getSimpleName();
     private boolean mMoving;
+
+    private MediaPlayer mMediaplayerStairs;
     private float mEwmaPressure = 0;
     private static final float ALPHA_PRESSURE = 0.5f;
     private static float THRESHOLD_EWMA_PRESSURE = 0.2f;
     private float mInitialPressure;
-    private MediaPlayer mMediaplayerStairs;
+    private boolean mOnStairs;
+
+    public static final String INTENT_ACTION = "com.michaeltroger.simpleactivityrecognition.action";
+    public static final String INTENT_MSG = "com.michaeltroger.simpleactivityrecognition.msg";
+    public static final String WALKING_MSG = "com.michaeltroger.simpleactivityrecognition.walking";
+    public static final String STAIRS_MSG = "com.michaeltroger.simpleactivityrecognition.stairs";
 
     @Override
     public void onCreate() {
@@ -81,7 +88,7 @@ public class SensorService extends Service implements SensorEventListener{
 
         if (mEwmaAccelleration > THRESHOLD_EWMA_ACCELERATION) {
             if (!mMoving) {
-                mMediaplayerMoving.start();
+                handleMovementDetected();
                 mMoving = true;
             }
         } else {
@@ -100,11 +107,31 @@ public class SensorService extends Service implements SensorEventListener{
         }
         if (mMoving) {
             if (Math.abs(mInitialPressure - mEwmaPressure) > THRESHOLD_EWMA_PRESSURE) {
-                mMediaplayerStairs.start();
+                handleStairsDetected();
+                mOnStairs = true;
+
                 mInitialPressure = mEwmaPressure;
+            } else {
+                mOnStairs = false;
             }
         }
 
+    }
+
+    private void handleStairsDetected() {
+        mMediaplayerStairs.start();
+
+        Intent local = new Intent(INTENT_ACTION);
+        local.putExtra(INTENT_MSG, STAIRS_MSG);
+        this.sendBroadcast(local);
+    }
+
+    private void handleMovementDetected() {
+        mMediaplayerMoving.start();
+
+        Intent local = new Intent(INTENT_ACTION);
+        local.putExtra(INTENT_MSG, WALKING_MSG);
+        this.sendBroadcast(local);
     }
 
 }

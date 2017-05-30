@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Activity Recognition</string>
+    <string name="notification_title">Activity recognition</string>
+    <string name="notification_message">The activity is tried to be recognized.</string>
+    <string name="ticker_text">Ticker text</string>
+
+</resources>

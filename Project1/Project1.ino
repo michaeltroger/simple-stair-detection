@@ -42,6 +42,9 @@ float x, y, z;
 float maxX = 0;
 float maxY = 0;
 float maxZ = 0;
+float xCC = 0;
+float yCC = 0;
+float zCC = 0;
 float maxTotalAcceleration = 2.5;
 float roll;
 float pitch;
@@ -63,7 +66,7 @@ int minAllowedTemp = -5;
 int maxAllowedTemp = 30;
 int tempDelta = 20;
 int temperature;
-int tempCalibrateValue = 0;
+int tempCalibrationConst = 0;
 
 //Application specific variables
 int resetButtonState = 0;
@@ -74,10 +77,12 @@ boolean accelero_state = true; //specifies if the accelerometer sensor functioni
 //unsigned long previousTime; //Time to calculate distance
 unsigned long loopTimeRotaryEncoder;
 unsigned long currentTimeRotaryEncoder;
+boolean autoDataTrans = false;
+boolean isDebug = false;
 
 unsigned long loopTimeDisplayOutput;
 unsigned long currentTimeDisplayOutput;
-boolean humanRedableOP = false;
+boolean humanRedableOP = true;
 const int DISPLAY_UPDATE_INTERVAL = 1000;
 
 float totalDistance = 0.0; //distance in meters
@@ -149,6 +154,8 @@ const int AUTOMATIC_DATA_TRANSMISSION = 90;
 const int ACK = 100;
 const int NACK = 101;
 
+const int HUMAN_REDABLE_OP = 103;
+
 void setup()
 {
   mySerial.begin(9600); // set up serial port for 9600 baud
@@ -167,10 +174,9 @@ void setup()
   pinMode(pin_led_reset, OUTPUT);
 
   delay(500); // wait for display to boot up
-  
+
   currentTimeRotaryEncoder = millis();
   loopTimeRotaryEncoder = currentTimeRotaryEncoder;
-
 
   currentTimeDisplayOutput = millis();
   loopTimeDisplayOutput = currentTimeDisplayOutput;
@@ -179,17 +185,19 @@ void setup()
 void loop()
 {
   resetButtonState = digitalRead(pin_reset_button);
-  if (resetButtonState == HIGH) {
+  if (resetButtonState == HIGH)
+  {
     digitalWrite(pin_led_reset, HIGH);
     maxX = 0;
     maxY = 0;
     maxZ = 0;
     minTemp = 200;
     maxTemp = -200;
-  } else {
+  }
+  else
+  {
     digitalWrite(pin_led_reset, LOW);
   }
-
   //reading the values
   x = analogRead(xpin);
   y = analogRead(ypin);
@@ -219,6 +227,10 @@ void loop()
   x = (x - zeroGVoltage) / sensitivity;
   y = (y - zeroGVoltage) / sensitivity;
   z = (z - zeroGVoltage) / sensitivity;
+  //saving calubrated value
+  x = x + xCC;
+  y = y + yCC;
+  z = z + zCC;
 
   //calculate tilt angles
   pitch = atan(x / sqrt((y * y) + (z * z)));
@@ -259,7 +271,7 @@ void loop()
   float vOut = ntcReading / 1023.0 * vInThermistor;
   float r1 = (r2Thermistor * vInThermistor - r2Thermistor * vOut) / vOut;
   temperature = multiMap(r1, resistance, temperatures, 10);
-  temperature = temperature + tempCalibrateValue;
+  temperature = temperature + tempCalibrationConst;
 
   if (temperature < minTemp)
     minTemp = temperature;
@@ -284,77 +296,82 @@ void loop()
   }
   //TODO finetune rotary encoder
   currentTimeRotaryEncoder = millis();
-  if (currentTimeRotaryEncoder >= loopTimeRotaryEncoder + 5) 
+  if (currentTimeRotaryEncoder >= loopTimeRotaryEncoder + 5)
   {
-      encoder_A = digitalRead(pin_A); // Read encoder pins
-      encoder_B = digitalRead(pin_B);
-      // Serial.print(" Read encoder pin ");
-      if ((!encoder_A) && (encoder_A_prev))
+    encoder_A = digitalRead(pin_A); // Read encoder pins
+    encoder_B = digitalRead(pin_B);
+    // Serial.print(" Read encoder pin ");
+    if ((!encoder_A) && (encoder_A_prev))
+    {
+      // Serial.print(" Encoder pin changed ");
+      // A has gone from high to low
+      if (encoder_B)
       {
-        // Serial.print(" Encoder pin changed ");
-        // A has gone from high to low
-        if (encoder_B)
+        // B is high so clockwise
+        displayScreen = (displayScreen + 1) % 4;
+      }
+      else
+      {
+        // B is low so counter-clockwise
+        if (displayScreen == 0)
         {
-          // B is high so clockwise
-          displayScreen = (displayScreen + 1) % 4;
+          displayScreen = 3;
         }
         else
         {
-          // B is low so counter-clockwise
-          if(displayScreen == 0){
-            displayScreen=3;
-          }else{
-            displayScreen = (displayScreen - 1) % 4;
-          }
+          displayScreen = (displayScreen - 1) % 4;
         }
       }
-      encoder_A_prev = encoder_A; // Store value of A for next time
+    }
+    encoder_A_prev = encoder_A; // Store value of A for next time
     loopTimeRotaryEncoder = currentTimeRotaryEncoder;
   }
   // Serial.print("displayScreen: ");
   // Serial.println(displayScreen);
   switch (displayScreen)
   {
-    case 0:
-      displayOutput = "Acc:";
-      displayOutput += "X:";
-      displayOutput += x;
-      displayOutput += " Y:";
-      displayOutput += y;
-      displayOutput += " Z:";
-      displayOutput += z;
-      break;
-    case 1:
-      displayOutput = "Max:";
-      displayOutput += "X:";
-      displayOutput += maxX;
-      displayOutput += " Y:";
-      displayOutput += maxY;
-      displayOutput += " Z:";
-      displayOutput += maxZ;
-      break;
-    case 2:
-      displayOutput = "Pitch: ";
-      displayOutput += pitch;
-      displayOutput += "  Roll: ";
-      displayOutput += roll;
-      break;
-    case 3:
-      displayOutput = "Temp:";
-      displayOutput += temperature;
-      displayOutput += "  Min:";
-      displayOutput += minTemp;
-      displayOutput += "  Max:";
-      displayOutput += maxTemp;
-      break;
+  case 0:
+    displayOutput = "Acc:";
+    displayOutput += "X:";
+    displayOutput += x;
+    displayOutput += " Y:";
+    displayOutput += y;
+    displayOutput += " Z:";
+    displayOutput += z;
+    break;
+  case 1:
+    displayOutput = "Max:";
+    displayOutput += "X:";
+    displayOutput += maxX;
+    displayOutput += " Y:";
+    displayOutput += maxY;
+    displayOutput += " Z:";
+    displayOutput += maxZ;
+    break;
+  case 2:
+    displayOutput = "Pitch: ";
+    displayOutput += pitch;
+    displayOutput += "  Roll: ";
+    displayOutput += roll;
+    break;
+  case 3:
+    displayOutput = "Temp:";
+    displayOutput += temperature;
+    displayOutput += "  Min:";
+    displayOutput += minTemp;
+    displayOutput += "  Max:";
+    displayOutput += maxTemp;
+    break;
   }
   //loopTime=millis();
   currentTimeDisplayOutput = millis();
-  if (currentTimeDisplayOutput > loopTimeDisplayOutput + DISPLAY_UPDATE_INTERVAL) {
+  if (currentTimeDisplayOutput > loopTimeDisplayOutput + DISPLAY_UPDATE_INTERVAL)
+  {
     display(displayOutput);
     loopTimeDisplayOutput = currentTimeDisplayOutput;
   }
   readCommand();
+  autoDataTransfer();
 
   //}
 }
@@ -381,7 +398,7 @@ int multiMap(int val, long *_in, int *_out, uint8_t size)
 
   // interpolate in the right segment for the rest
   return (val - _in[pos - 1]) * (_out[pos] - _out[pos - 1]) /
-         (_in[pos] - _in[pos - 1]) +
+             (_in[pos] - _in[pos - 1]) +
          _out[pos - 1];
 }
 
@@ -406,130 +423,172 @@ void readCommand()
   if (Serial.available() > 0)
   {
     String command = Serial.readStringUntil(STOP);
-   // Serial.print("'" + command + "'");
+    // Serial.print("'" + command + "'");
     String commandTrimmed = command.substring(command.indexOf(START) + 1, command.indexOf(CHECKSUM));
+    debug("ct0: " + commandTrimmed);
     int req = commandTrimmed.toInt();
     String response = String(START);
     if (command.indexOf(SEPERATOR) == -1)
     {
       switch (req)
       {
-        case REQ_TEMP:
-          sendResponse( RESP_TEMP, temperature, "RESP_TEMP");
-          break;
-        case REQ_MAX_TEMP:
-          sendResponse( RESP_MAX_TEMP, maxTemp, "RESP_MAX_TEMP");
-          break;
-        case REQ_MIN_TEMP:
-          sendResponse( RESP_MIN_TEMP, minTemp, "RESP_MIN_TEMP");
-          break;
-        case REQ_CURR_X:
-          sendResponse( RESP_CURR_X, x, "RESP_CURR_X");
-          break;
-        case REQ_CURR_Y:
-          sendResponse( RESP_CURR_Y, y, "RESP_CURR_Y");
-          break;
-        case REQ_CURR_Z:
-          sendResponse( RESP_CURR_Z, z, "RESP_CURR_Z");
-          break;
-        case REQ_MAX_X:
-          sendResponse( RESP_MAX_X, maxX, "RESP_MAX_X");
-          break;
-        case REQ_MAX_Y:
-          sendResponse( RESP_MAX_Y, maxY, "RESP_MAX_Y");
-          break;
-        case REQ_MAX_Z:
-          sendResponse( RESP_MAX_Z, maxZ, "RESP_MAX_Z");
-          break;
-        case REQ_TILT:
-          sendResponse(RESP_TILT, tilt, "RESP_TILT");
-          break;
-        case REQ_PITCH:
-          sendResponse(RESP_PITCH, pitch, "RESP_PITCH");
-          break;
-        case REQ_ROLL:
-          sendResponse(RESP_ROLL, roll, "RESP_ROLL");
-          break;
-        case RESET_MIN_MAX:
-          minTemp = 100;
-          maxTemp = -100;
-          maxX = maxY = maxZ = maxTotalAcceleration = 0;
-          //sednig ack
-          sendResponse(ACK, "");
-          break;
-        default:
-          //sending negative ack
-          sendResponse(NACK, "");
+      case REQ_TEMP:
+        sendResponse(RESP_TEMP, temperature, "RESP_TEMP");
+        break;
+      case REQ_MAX_TEMP:
+        sendResponse(RESP_MAX_TEMP, maxTemp, "RESP_MAX_TEMP");
+        break;
+      case REQ_MIN_TEMP:
+        sendResponse(RESP_MIN_TEMP, minTemp, "RESP_MIN_TEMP");
+        break;
+      case REQ_CURR_X:
+        sendResponse(RESP_CURR_X, x, "RESP_CURR_X");
+        break;
+      case REQ_CURR_Y:
+        sendResponse(RESP_CURR_Y, y, "RESP_CURR_Y");
+        break;
+      case REQ_CURR_Z:
+        sendResponse(RESP_CURR_Z, z, "RESP_CURR_Z");
+        break;
+      case REQ_MAX_X:
+        sendResponse(RESP_MAX_X, maxX, "RESP_MAX_X");
+        break;
+      case REQ_MAX_Y:
+        sendResponse(RESP_MAX_Y, maxY, "RESP_MAX_Y");
+        break;
+      case REQ_MAX_Z:
+        sendResponse(RESP_MAX_Z, maxZ, "RESP_MAX_Z");
+        break;
+      case REQ_TILT:
+        sendResponse(RESP_TILT, tilt, "RESP_TILT");
+        break;
+      case REQ_PITCH:
+        sendResponse(RESP_PITCH, pitch, "RESP_PITCH");
+        break;
+      case REQ_ROLL:
+        sendResponse(RESP_ROLL, roll, "RESP_ROLL");
+        break;
+      case RESET_MIN_MAX:
+        minTemp = 100;
+        maxTemp = -100;
+        maxX = maxY = maxZ = 0;
+        //sednig ack
+        sendResponse(ACK, "RESET_MIN_MAX");
+        break;
+      default:
+        debug("nack in 1 if");
+        //sending negative ack
+        sendResponse(NACK, "response if");
       }
     }
     else
     {
       int reqType = commandTrimmed.substring(0, commandTrimmed.indexOf(SEPERATOR)).toInt();
-      commandTrimmed = commandTrimmed.substring(commandTrimmed.indexOf(SEPERATOR + 1));
-      int param, data;
-      if (reqType != REQ_PARA)
-      {
-        param = commandTrimmed.substring(0, SEPERATOR).toInt();
-        data = commandTrimmed.substring(commandTrimmed.indexOf(SEPERATOR) + 1).toInt();
-      }
-      else
-      {
-        param = commandTrimmed.toInt();
-      }
+      //debug("ct1 " + commandTrimmed);
+      commandTrimmed = commandTrimmed.substring(commandTrimmed.indexOf(SEPERATOR) + 1);
+      //debug("ct2: " + commandTrimmed);
+      int data, appConst;
       if (reqType == REQ_PARA)
       {
-        switch (param)
+        debug("if reqpara");
+        appConst = commandTrimmed.toInt();
+      }
+      else if (reqType == SET_PARA)
+      {
+        debug("if setpara" + commandTrimmed);
+        appConst = commandTrimmed.substring(0, commandTrimmed.indexOf(SEPERATOR)).toInt();
+        data = commandTrimmed.substring(commandTrimmed.indexOf(SEPERATOR) + 1).toInt();
+      }
+
+      //debug(String("Data: reqType: "+String(reqType))
+      debug(String("data Req type:") + reqType + " App const: " + appConst + " Data: " + data);
+
+      if (reqType == REQ_PARA)
+      {
+        debug("Requesting param");
+        switch (appConst)
         {
-          case MAX_TEMP_TRESHOLD:
-            sendResponse(RESP_PARA, MAX_TEMP_TRESHOLD, maxAllowedTemp, "MAX_TEMP_TRESHOLD");
-            break;
-          case DELTA_TEMP_TRESHOLD:
-            sendResponse(RESP_PARA, DELTA_TEMP_TRESHOLD, tempDelta, "DELTA_TEMP_TRESHOLD");
-            break;
-          case MAX_ACC_TRESHOLD:
-            sendResponse( RESP_PARA, MAX_ACC_TRESHOLD, maxTotalAcceleration, "MAX_ACC_TRESHOLD");
-            break;
-          default:
-            //sending negative ack
-            sendResponse(NACK, "");
+        case MAX_TEMP_TRESHOLD:
+          sendResponse(RESP_PARA, MAX_TEMP_TRESHOLD, maxAllowedTemp, "MAX_TEMP_TRESHOLD");
+          break;
+        case DELTA_TEMP_TRESHOLD:
+          sendResponse(RESP_PARA, DELTA_TEMP_TRESHOLD, tempDelta, "DELTA_TEMP_TRESHOLD");
+          break;
+        case MAX_ACC_TRESHOLD:
+          sendResponse(RESP_PARA, MAX_ACC_TRESHOLD, maxTotalAcceleration, "MAX_ACC_TRESHOLD");
+          break;
+        default:
+          debug("NACK in req para");
+          //sending negative ack
+          sendResponse(NACK, "");
         }
       }
-      if (reqType == SET_PARA) {
-        switch (param) {
-          case MAX_TEMP_TRESHOLD:
-            maxAllowedTemp = data;
-            //sending ack
-            sendResponse(ACK, "MAX_TEMP_TRESHOLD");
-            break;
-          case DELTA_TEMP_TRESHOLD:
-            tempDelta = data;
-            //sending ack
-            sendResponse(ACK, "DELTA_TEMP_TRESHOLD" );
-          case MAX_ACC_TRESHOLD:
-            maxTotalAcceleration = data;
-            //sending ack
-            sendResponse(ACK, "MAX_ACC_TRESHOLD");
-            break;
-          case CALIBRATION_TEMPERATURE:
-            tempCalibrateValue = temperature - data;
-            //sending ack
-            sendResponse(ACK, "CALIBRATION_TEMPERATURE" );
-            break;
-          default:
-            //sending negative ack
-            sendResponse(NACK, "");
+      if (reqType == SET_PARA)
+      {
+        switch (appConst)
+        {
+        case MAX_TEMP_TRESHOLD:
+          maxAllowedTemp = data;
+          sendResponse(ACK, "MAX_TEMP_TRESHOLD");
+          break;
+        case DELTA_TEMP_TRESHOLD:
+          tempDelta = data;
+          sendResponse(ACK, "DELTA_TEMP_TRESHOLD");
+          break;
+        case MAX_ACC_TRESHOLD:
+          maxTotalAcceleration = data;
+          sendResponse(ACK, "MAX_ACC_TRESHOLD");
+          break;
+        case CALIBRATION_TEMPERATURE:
+          tempCalibrationConst = data - temperature;
+          sendResponse(ACK, "CALIBRATION_TEMPERATURE");
+          break;
+        case HUMAN_REDABLE_OP:
+          if (data == 1)
+            humanRedableOP = true;
+          else
+            humanRedableOP = false;
+          sendResponse(ACK, "HUMAN_REDABLE_OP");
+          break;
+        case AUTOMATIC_DATA_TRANSMISSION:
+          if (data == 1)
+            autoDataTrans = true;
+          else
+            autoDataTrans = false;
+          sendResponse(ACK, "AUTOMATIC_DATA_TRANSMISSION");
+          break;
+        case CALIBRATION_X:
+          xCC = data - x;
+          sendResponse(ACK, "CALIBRATION_X");
+          break;
+        case CALIBRATION_Y:
+          yCC = data - y;
+          sendResponse(ACK, "CALIBRATION_Y");
+          break;
+        case CALIBRATION_Z:
+          zCC = data - z;
+          sendResponse(ACK, "CALIBRATION_Z");
+          break;
+        default:
+          debug("NACK in set para");
+          //sending negative ack
+          sendResponse(NACK, "SET_PARA");
         }
       }
     }
   }
 }
 
-void sendResponse(int param, String name) {
-  if (humanRedableOP) {
+void sendResponse(int param, String name)
+{
+  if (humanRedableOP)
+  {
     String op = name;
     op += " " + String(param);
     Serial.println(op);
-  } else {
+  }
+  else
+  {
     String response = String(START);
     response += param;
     response += CHECKSUM;
@@ -537,12 +596,16 @@ void sendResponse(int param, String name) {
     Serial.println(response);
   }
 }
-void sendResponse(int param, float data, String name) {
-  if (humanRedableOP) {
+void sendResponse(int param, float data, String name)
+{
+  if (humanRedableOP)
+  {
     String op = name;
     op += " " + String(data);
     Serial.println(op);
-  } else {
+  }
+  else
+  {
     String response = String(START);
     response += param;
     response += SEPERATOR;
@@ -552,12 +615,16 @@ void sendResponse(int param, float data, String name) {
     Serial.println(response);
   }
 }
-void sendResponse(int response_param, int param, float data, String name) {
-  if (humanRedableOP) {
+void sendResponse(int response_param, int param, float data, String name)
+{
+  if (humanRedableOP)
+  {
     String op = name;
     op += " " + String(data);
     Serial.println(op);
-  } else {
+  }
+  else
+  {
     String response = String(START);
     response += response_param;
     response += SEPERATOR;
@@ -567,5 +634,30 @@ void sendResponse(int response_param, int param, float data, String name) {
     response += CHECKSUM;
     response += STOP;
     Serial.println(response);
+  }
+}
+void debug(String msg)
+{
+  if (isDebug)
+  {
+    Serial.println(msg);
+  }
+}
+void autoDataTransfer()
+{
+  if (autoDataTrans)
+  {
+    sendResponse(RESP_TEMP, temperature, "RESP_TEMP");
+    sendResponse(RESP_MIN_TEMP, minTemp, "RESP_MIN_TEMP");
+    sendResponse(RESP_MAX_TEMP, maxTemp, "RESP_MAX_TEMP");
+    sendResponse(RESP_CURR_X, x, "RESP_CURR_X");
+    sendResponse(RESP_CURR_Y, y, "RESP_CURR_Y");
+    sendResponse(RESP_CURR_Z, z, "RESP_CURR_Z");
+    sendResponse(RESP_MAX_X, maxX, "RESP_MAX_X");
+    sendResponse(RESP_MAX_Y, maxY, "RESP_MAX_Y");
+    sendResponse(RESP_MAX_Z, maxZ, "RESP_MAX_Z");
+    //sendResponse(RESP_TILT, tilt, "RESP_TILT");
+    sendResponse(RESP_ROLL, roll, "RESP_ROLL");
+    sendResponse(RESP_PITCH, pitch, "RESP_PITCH");
   }
 }

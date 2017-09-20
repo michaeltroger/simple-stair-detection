@@ -9,6 +9,9 @@ import android.hardware.SensorManager;
 import android.media.MediaPlayer;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.widget.Toast;
+
+import com.google.common.base.Optional;
 
 public class SensorService extends Service implements SensorEventListener{
     private SensorManager mSensorManager;
@@ -35,12 +38,22 @@ public class SensorService extends Service implements SensorEventListener{
     public void onCreate() {
         super.onCreate();
 
-        mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
-        final Sensor sensorAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
-        final Sensor sensorBarometer = mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
-        mSensorManager.registerListener(this, sensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-        mSensorManager.registerListener(this, sensorBarometer, SensorManager.SENSOR_DELAY_NORMAL);
+        final Optional<Sensor> sensorAccelerometer = Optional.fromNullable(mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION));
+        final Optional<Sensor> sensorBarometer = Optional.fromNullable(mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE));
+
+        if (sensorAccelerometer.isPresent()) {
+            mSensorManager.registerListener(this, sensorAccelerometer.get(), SensorManager.SENSOR_DELAY_NORMAL);
+        } else {
+            Toast.makeText(this, "No accelerometer available - you can't use this app", Toast.LENGTH_LONG).show();
+        }
+
+        if (sensorBarometer.isPresent()) {
+            mSensorManager.registerListener(this, sensorBarometer.get(), SensorManager.SENSOR_DELAY_NORMAL);
+        } else {
+            Toast.makeText(this, "No barometer available - stair detection not possible", Toast.LENGTH_LONG).show();
+        }
 
         mMediaplayerMoving = MediaPlayer.create(getApplicationContext(), R.raw.robot);
         mMediaplayerStairs = MediaPlayer.create(getApplicationContext(), R.raw.typing);
@@ -83,7 +96,7 @@ public class SensorService extends Service implements SensorEventListener{
         final float accY = event.values[1];
         final float accZ = event.values[2];
 
-        final int accVectorLength = (int)Math.round(Math.sqrt(accX * accX + accY * accY + accZ * accZ));
+        final int accVectorLength = (int) Math.round(Math.sqrt(accX * accX + accY * accY + accZ * accZ));
 
         mEwmaAccelleration = ALPHA_ACCELERATION * accVectorLength + (1 - ALPHA_ACCELERATION) * mEwmaAccelleration;
 

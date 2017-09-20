@@ -1,4 +1,4 @@
-package com.pramodmichael.simpleactivityrecognition;
+package com.michaeltroger.simplestairdetection;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

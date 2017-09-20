@@ -1,4 +1,4 @@
-package com.pramodmichael.simpleactivityrecognition;
+package com.michaeltroger.simplestairdetection;
 
 import android.app.Service;
 import android.content.Intent;
@@ -27,10 +27,10 @@ public class SensorService extends Service implements SensorEventListener{
     private float mInitialPressure;
     private boolean mOnStairs;
 
-    public static final String INTENT_ACTION = "com.pramodmichael.simpleactivityrecognition.action";
-    public static final String INTENT_MSG = "com.pramodmichael.simpleactivityrecognition.msg";
-    public static final String WALKING_MSG = "com.pramodmichael.simpleactivityrecognition.walking";
-    public static final String STAIRS_MSG = "com.pramodmichael.simpleactivityrecognition.stairs";
+    public static final String INTENT_ACTION = "com.michaeltroger.simplestairdetection.action";
+    public static final String INTENT_MSG = "com.michaeltroger.simplestairdetection.msg";
+    public static final String WALKING_MSG = "com.michaeltroger.simplestairdetection.walking";
+    public static final String STAIRS_MSG = "com.michaeltroger.simplestairdetection.stairs";
 
     @Override
     public void onCreate() {

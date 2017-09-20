@@ -1,4 +1,4 @@
-package com.pramodmichael.simpleactivityrecognition;
+package com.michaeltroger.simplestairdetection;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -13,10 +13,10 @@ import android.view.WindowManager;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
-import static com.pramodmichael.simpleactivityrecognition.SensorService.INTENT_ACTION;
-import static com.pramodmichael.simpleactivityrecognition.SensorService.INTENT_MSG;
-import static com.pramodmichael.simpleactivityrecognition.SensorService.STAIRS_MSG;
-import static com.pramodmichael.simpleactivityrecognition.SensorService.WALKING_MSG;
+import static com.michaeltroger.simplestairdetection.SensorService.INTENT_ACTION;
+import static com.michaeltroger.simplestairdetection.SensorService.INTENT_MSG;
+import static com.michaeltroger.simplestairdetection.SensorService.STAIRS_MSG;
+import static com.michaeltroger.simplestairdetection.SensorService.WALKING_MSG;
 
 public class MainActivity extends AppCompatActivity {
     private BroadcastReceiver mUpdateUIReciver;
@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
         final ArrayList<String> list = new ArrayList<>();
 
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        RecyclerView recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         final MyRecyclerViewAdapter adapter = new MyRecyclerViewAdapter(this, list);
         recyclerView.setAdapter(adapter);

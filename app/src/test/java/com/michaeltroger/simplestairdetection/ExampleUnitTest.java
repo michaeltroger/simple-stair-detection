@@ -1,4 +1,4 @@
-package com.pramodmichael.simpleactivityrecognition;
+package com.michaeltroger.simplestairdetection;
 
 import org.junit.Test;
 

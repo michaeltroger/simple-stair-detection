@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Activity Recognition</string>
+    <string name="app_name">Simple stair detection</string>
     <string name="walking_detected">Walking</string>
     <string name="stairs_detected">Stairs</string>
 

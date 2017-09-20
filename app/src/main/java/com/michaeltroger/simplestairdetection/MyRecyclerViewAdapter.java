@@ -1,18 +1,21 @@
 package com.michaeltroger.simplestairdetection;
 
 import android.content.Context;
+import android.databinding.DataBindingUtil;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.michaeltroger.simplestairdetection.databinding.RecyclerviewRowBinding;
+
 import java.util.Collections;
 import java.util.List;
 
-public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAdapter.ViewHolder> {
+public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAdapter.MyViewHolder> {
 
-    private List<String> mData = Collections.emptyList();
+    private final List<String> mData;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
 
@@ -24,17 +27,16 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
 
     // inflates the row layout from xml when needed
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = mInflater.inflate(R.layout.recyclerview_row, parent, false);
-        ViewHolder viewHolder = new ViewHolder(view);
-        return viewHolder;
+    public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        final RecyclerviewRowBinding binding = DataBindingUtil.inflate(mInflater, R.layout.recyclerview_row, parent, false);
+        return new MyViewHolder(binding);
     }
 
     // binds the data to the textview in each row
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        String text = mData.get(position);
-        holder.myTextView.setText(text);
+    public void onBindViewHolder(MyViewHolder holder, int position) {
+        final String text = mData.get(position);
+        holder.binding.textview.setText(text);
     }
 
     // total number of rows
@@ -45,12 +47,12 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
 
 
     // stores and recycles views as they are scrolled off screen
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        public TextView myTextView;
+    public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        private final RecyclerviewRowBinding binding;
 
-        public ViewHolder(View itemView) {
-            super(itemView);
-            myTextView = (TextView) itemView.findViewById(R.id.textview);
+        public MyViewHolder(RecyclerviewRowBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
             itemView.setOnClickListener(this);
         }
 

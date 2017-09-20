@@ -2,15 +2,14 @@ package com.michaeltroger.simplestairdetection;
 
 import android.content.Context;
 import android.databinding.DataBindingUtil;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.michaeltroger.simplestairdetection.databinding.RecyclerviewRowBinding;
 
-import java.util.Collections;
 import java.util.List;
 
 public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAdapter.MyViewHolder> {
@@ -20,7 +19,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
     private ItemClickListener mClickListener;
 
     // data is passed into the constructor
-    public MyRecyclerViewAdapter(Context context, List<String> data) {
+    public MyRecyclerViewAdapter(@NonNull final Context context, @NonNull final List<String> data) {
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
     }
@@ -50,7 +49,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
     public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private final RecyclerviewRowBinding binding;
 
-        public MyViewHolder(RecyclerviewRowBinding binding) {
+        public MyViewHolder(@NonNull final RecyclerviewRowBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
             itemView.setOnClickListener(this);
@@ -63,7 +62,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
     }
 
     // convenience method for getting data at click position
-    public String getItem(int id) {
+    public String getItem(final int id) {
         return mData.get(id);
     }
 

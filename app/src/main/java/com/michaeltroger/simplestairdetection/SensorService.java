@@ -33,6 +33,7 @@ public class SensorService extends Service implements SensorEventListener{
     public static final String INTENT_MSG = "com.michaeltroger.simplestairdetection.msg";
     public static final String WALKING_MSG = "com.michaeltroger.simplestairdetection.walking";
     public static final String STAIRS_MSG = "com.michaeltroger.simplestairdetection.stairs";
+    public static final String CLOSE_APP_MSG = "com.michaeltroger.simplestairdetection.closeapp";
 
     @Override
     public void onCreate() {
@@ -47,6 +48,7 @@ public class SensorService extends Service implements SensorEventListener{
             mSensorManager.registerListener(this, sensorAccelerometer.get(), SensorManager.SENSOR_DELAY_NORMAL);
         } else {
             Toast.makeText(this, "No accelerometer available - you can't use this app", Toast.LENGTH_LONG).show();
+            closeApp();
         }
 
         if (sensorBarometer.isPresent()) {
@@ -57,6 +59,12 @@ public class SensorService extends Service implements SensorEventListener{
 
         mMediaplayerMoving = MediaPlayer.create(getApplicationContext(), R.raw.robot);
         mMediaplayerStairs = MediaPlayer.create(getApplicationContext(), R.raw.typing);
+    }
+
+    private void closeApp() {
+        final Intent local = new Intent(INTENT_ACTION);
+        local.putExtra(INTENT_MSG, CLOSE_APP_MSG);
+        this.sendBroadcast(local);
     }
 
     @Override

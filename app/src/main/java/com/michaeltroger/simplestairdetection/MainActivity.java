@@ -15,6 +15,7 @@ import com.michaeltroger.simplestairdetection.databinding.ActivityMainBinding;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
+import static com.michaeltroger.simplestairdetection.SensorService.CLOSE_APP_MSG;
 import static com.michaeltroger.simplestairdetection.SensorService.INTENT_ACTION;
 import static com.michaeltroger.simplestairdetection.SensorService.INTENT_MSG;
 import static com.michaeltroger.simplestairdetection.SensorService.STAIRS_MSG;
@@ -55,6 +56,9 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case STAIRS_MSG:
                         list.add(dateString + ": " + getString(R.string.stairs_detected));
+                        break;
+                    case CLOSE_APP_MSG:
+                        finish();
                         break;
                 }
 

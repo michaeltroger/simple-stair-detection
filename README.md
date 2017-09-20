@@ -14,7 +14,7 @@ For stairs detection the following algorithm is used:
 1. Get pressure data
     - Remember the initial pressure (only on 1st call)
 2. Calculate the EWMA of this data
-3. Check whether the device is moving (algorithm from previous slide)
+3. Check whether the device is moving (movement detection algorithm from before)
     - Subtract the EWMA from the remembered pressure data
     - Take its absolute value and check it for a certain threshold
     - Save the EWMA for the next threshold comparison

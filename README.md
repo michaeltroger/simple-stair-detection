@@ -1,5 +1,7 @@
 # Simple stair (and movement) detection for Android
 
+<img src="/screenshot.png" alt="Simple stair detection" width="400px"/>
+
 This app demonstrates a simple approach for activity recognition without any Machine learning involved. The app requires an accelerometer sensor as well as an barometer sensor in order to function!
 
 It is able to detect _movement_ (like walking) as well as stair climbing.
